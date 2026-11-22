@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Sitio Web Responsivo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Cabecera del sitio -->
+    <header id="inicio">
+        <div class="marca">
+            <img src="Imagen/logo.png" alt="Logo personal" class="logo">
+            <div>
+                <h1>Mi Portafolio Personal</h1>
+                <p>Un poco sobre mí y lo que me gusta</p>
+            </div>
+        </div>
+        <!-- Navegación principal -->
+        <nav>
+            <ul>
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#sobre-mi">Sobre mí</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+        </nav>
+        <!-- Botón para cambiar el modo de visualización -->
+        <button type="button" id="modo-btn" aria-pressed="false">Activar modo oscuro</button>
+    </header>
+
+    <!-- Contenido principal -->
+    <main>
+        
+        <!-- Información personal -->
+        <section id="sobre-mi">
+            <h2>Información Personal</h2>
+            
+            <!-- Datos personales -->
+            <article>
+                <p><strong>Nombre:</strong> Patroclo Romero</p>
+                <p><strong>¿Dónde Vive?:</strong> Bogotá</p>
+                <p><strong>Hobbies:</strong> Leer, escuchar música, conocer restaurantes en pueblos cerca de bogota e ir en moto</p>
+            </article>
+
+            <!-- Recomendación personal -->
+            <article>
+                <h3>Recomendación del día</h3>
+                <p><strong>Lugar recomendado:</strong> Restaurante cocineritos en Guatavita</p>
+            </article>
+        </section>
+
+        <!-- Información adicional -->
+        <aside>
+            <h3>Enlaces de interés</h3>
+            <p>Espacio para agregar informacion relevante</p>
+        </aside>
+
+    </main>
+
+
+    <!-- Formulario de contacto -->
+    <section id="contacto">
+        <h2>Formulario de Contacto</h2>
+        <form id="form-contacto">
+            <div class="form-group">
+                <label for="nombre">Nombre completo:</label>
+                <input type="text" id="nombre" name="nombre" required placeholder="Ej: pantuflas infante">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Correo electrónico:</label>
+                <input type="email" id="email" name="email" required placeholder="correo@ejemplo.com">
+            </div>
+
+            <div class="form-group">
+                <label for="mensaje">Mensaje o Sugerencia:</label>
+                <textarea id="mensaje" name="mensaje" rows="4" required minlength="10" placeholder="Escribe tu mensaje (mínimo 10 caracteres)..."></textarea>
+                <!-- Contador de caracteres -->
+                <small id="contador">0 caracteres (mínimo 10)</small>
+            </div>
+
+            <button type="submit">Enviar datos</button>
+        </form>
+        <p id="aviso" role="status" aria-live="polite"></p>
+
+        <!-- Lista de mensajes guardados -->
+        <div class="guardados">
+            <h3>Mensajes guardados</h3>
+            <ul id="lista-mensajes"></ul>
+            <button type="button" id="borrar-btn">Borrar mensajes guardados</button>
+        </div>
+    </section>
+
+    <!-- Pie de página -->
+    <footer>
+        <p>&copy; 2026 - Diseñado con HTML5 y CSS3 Responsivo.</p>
+    </footer>
+
+    <script>
+        // Conecta el código con los elementos de la página
+        const formulario = document.getElementById("form-contacto");
+        const nombre = document.getElementById("nombre");
+        const email = document.getElementById("email");
+        const mensaje = document.getElementById("mensaje");
+        const contador = document.getElementById("contador");
+        const aviso = document.getElementById("aviso");
+        const listaMensajes = document.getElementById("lista-mensajes");
+        const modoBtn = document.getElementById("modo-btn");
+
+        // Muestra los mensajes guardados
+        function mostrarMensajes() {
+            listaMensajes.replaceChildren();
+            const mensajesGuardados = JSON.parse(localStorage.getItem("mensajesContacto") || "[]");
+
+            mensajesGuardados.forEach(function (datos) {
+                const item = document.createElement("li");
+                item.textContent = datos.nombre + " (" + datos.email + "): " + datos.mensaje;
+                listaMensajes.appendChild(item);
+            });
+        }
+
+        // Si no puede leer los mensajes, muestra una alerta
+        try {
+            mostrarMensajes();
+        } catch (error) {
+            aviso.textContent = "No se pudieron cargar los mensajes guardados.";
+        }
+
+        // Borra el error cuando se corrige el nombre
+        nombre.addEventListener("input", function () {
+            nombre.setCustomValidity("");
+        });
+
+        // Actualiza el contador mientras se escribe
+        mensaje.addEventListener("input", function () {
+            contador.textContent = mensaje.value.trim().length + " caracteres (mínimo 10)";
+            mensaje.setCustomValidity("");
+        });
+
+        // Revisa los datos antes de guardar el formulario
+        formulario.addEventListener("submit", function (evento) {
+            evento.preventDefault();
+            aviso.textContent = "";
+
+            const nombreLimpio = nombre.value.trim();
+            const emailLimpio = email.value.trim();
+            const mensajeLimpio = mensaje.value.trim();
+            const nombreValido = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s'-]{3,}$/.test(nombreLimpio);
+
+            nombre.setCustomValidity(nombreValido ? "" : "Escribe un nombre válido de al menos 3 letras.");
+            mensaje.setCustomValidity(mensajeLimpio.length >= 10 ? "" : "El mensaje debe tener al menos 10 caracteres.");
+
+            if (!formulario.reportValidity()) {
+                return;
+            }
+
+            try {
+                const mensajesGuardados = JSON.parse(localStorage.getItem("mensajesContacto") || "[]");
+                mensajesGuardados.push({
+                    nombre: nombreLimpio,
+                    email: emailLimpio,
+                    mensaje: mensajeLimpio
+                });
+                localStorage.setItem("mensajesContacto", JSON.stringify(mensajesGuardados));
+                mostrarMensajes();
+                aviso.textContent = "El mensaje quedó guardado en este navegador.";
+                formulario.reset();
+                contador.textContent = "0 caracteres (mínimo 10)";
+            } catch (error) {
+                aviso.textContent = "No se pudo guardar el mensaje en el navegador.";
+            }
+        });
+
+        // Permite borrar los mensajes guardados
+        document.getElementById("borrar-btn").addEventListener("click", function () {
+            try {
+                localStorage.removeItem("mensajesContacto");
+                mostrarMensajes();
+                aviso.textContent = "Se borraron los mensajes guardados.";
+            } catch (error) {
+                aviso.textContent = "No se pudieron borrar los mensajes.";
+            }
+        });
+
+        // Recupera el modo de colores guardado
+        try {
+            if (localStorage.getItem("modoOscuro") === "true") {
+                document.body.classList.add("modo-oscuro");
+                modoBtn.textContent = "Activar modo claro";
+                modoBtn.setAttribute("aria-pressed", "true");
+            }
+        } catch (error) {
+            aviso.textContent = "No se pudo cargar la preferencia de visualización.";
+        }
+
+        modoBtn.addEventListener("click", function () {
+            document.body.classList.toggle("modo-oscuro");
+            const modoOscuroActivo = document.body.classList.contains("modo-oscuro");
+            modoBtn.textContent = modoOscuroActivo ? "Activar modo claro" : "Activar modo oscuro";
+            modoBtn.setAttribute("aria-pressed", String(modoOscuroActivo));
+
+            try {
+                localStorage.setItem("modoOscuro", String(modoOscuroActivo));
+            } catch (error) {
+                aviso.textContent = "El modo cambió, pero no se pudo guardar la preferencia.";
+            }
+        });
+    </script>
+</body>
+</html>
